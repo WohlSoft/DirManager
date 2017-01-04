@@ -93,33 +93,44 @@ public:
      */
     bool rmdir(const std::string &dirPath);
 
+    /**
+     * @brief Make directory with relative to current path with making middle folders which are not exists
+     * @param dirPath Relative directory path to the new directory
+     * @return true if directories are successfully created
+     */
     bool mkpath(const std::string &dirPath);
+
+    /**
+     * @brief Recursively remove directory and all files inside it
+     * @param dirPath Relative path to directory to delete
+     * @return true if everything is success, false on any error of deletion (write protection or access denied)
+     */
     bool rmpath(const std::string &dirPath);
 
     /**
      * @brief Make directory with absolute path
-     * @param dirPath absolute path to the new directory
+     * @param dirPath Absolute path to the new directory
      * @return true if directory successfully created
      */
     static bool mkAbsDir(const std::string &dirPath);
 
     /**
      * @brief Remove directory (which must be empty) with absolute path
-     * @param dirPath absolute path to the directory to remove
+     * @param dirPath Absolute path to the directory to remove
      * @return true if directory successfully removed
      */
     static bool rmAbsDir(const std::string &dirPath);
 
     /**
      * @brief Make directory with absolute path with making middle folders which are not exists
-     * @param dirPath absolute path to the new directory
+     * @param dirPath Absolute path to the new directory
      * @return true if directories are successfully created
      */
     static bool mkAbsPath(const std::string &dirPath);
 
     /**
      * @brief Recursively remove directory and all files inside it
-     * @param dirPath absolute path to directory to delete
+     * @param dirPath Absolute path to directory to delete
      * @return true if everything is success, false on any error of deletion (write protection or access denied)
      */
     static bool rmAbsPath(const std::string &dirPath);
@@ -130,6 +141,7 @@ public:
      * @return true if Walker successfully initialized
      */
     bool        beginWalking(const std::vector<std::string> &suffix_filters = std::vector<std::string>());
+
     /**
      * @brief Fetch list of files of the next directory
      * @param curPath Current directory path

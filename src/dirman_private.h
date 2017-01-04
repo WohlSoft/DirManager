@@ -46,7 +46,7 @@ class DirMan::DirMan_private
 
 public:
     DirMan_private() = default;
-    DirMan_private(const DirMan_private&) = default;
+    DirMan_private(const DirMan_private &) = default;
 };
 
 #endif // DIRMAN_PRIVATE_H

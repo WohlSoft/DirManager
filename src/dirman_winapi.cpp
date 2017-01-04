@@ -195,27 +195,29 @@ bool DirMan::rmAbsPath(const std::string &dirPath)
         e->hFind = FindFirstFileW((e->path + L"/*").c_str(), &e->data);
         bool walkUp = false;
         if(e->hFind != INVALID_HANDLE_VALUE)
-        do
         {
-            if((wcscmp(e->data.cFileName, L"..") == 0) || (wcscmp(e->data.cFileName, L".") == 0))
-                continue;
-            std::wstring path = e->path + L"/" + e->data.cFileName;
+            do
+            {
+                if((wcscmp(e->data.cFileName, L"..") == 0) || (wcscmp(e->data.cFileName, L".") == 0))
+                    continue;
+                std::wstring path = e->path + L"/" + e->data.cFileName;
 
-            if((e->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-            {
-                FindClose(e->hFind);
-                ds.path = path;
-                dirStack.push(ds);
-                walkUp = true;
-                break;
+                if((e->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+                {
+                    FindClose(e->hFind);
+                    ds.path = path;
+                    dirStack.push(ds);
+                    walkUp = true;
+                    break;
+                }
+                else
+                {
+                    if(DeleteFileW(path.c_str()) == FALSE)
+                        ret = FALSE;
+                }
             }
-            else
-            {
-                if(DeleteFileW(path.c_str()) == FALSE)
-                    ret = FALSE;
-            }
+            while(FindNextFileW(e->hFind, &e->data));
         }
-        while(FindNextFileW(e->hFind, &e->data));
 
         if(!walkUp)
         {
