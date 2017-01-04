@@ -28,15 +28,16 @@ DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <stack>
 #include <vector>
+#include <memory>
 
 class DirMan
 {
     class DirMan_private;
-    DirMan_private *d;
+    std::unique_ptr<DirMan_private> d;
 public:
 
     explicit DirMan(const std::string &dirPath = "./");
-
+    DirMan(const DirMan&) = default;
     virtual ~DirMan();
 
     /**
@@ -86,8 +87,8 @@ public:
     static bool mkAbsDir(const std::string &dirPath);
     static bool mkAbsPath(const std::string &dirPath);
 
-    bool        beginIteration(const std::vector<std::string> &suffix_filters = std::vector<std::string>());
-    bool        getListOfFilesFromIterator(std::string &curPath, std::vector<std::string> &list);
+    bool        beginWalking(const std::vector<std::string> &suffix_filters = std::vector<std::string>());
+    bool        fetchListFromWalker(std::string &curPath, std::vector<std::string> &list);
 };
 
 #endif // DIRMAN_H

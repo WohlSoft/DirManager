@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../src/dirman.h"
+#include <dirman.h>
 
 int main(int , char *[])
 {
@@ -20,10 +20,10 @@ int main(int , char *[])
     std::vector<std::string> filters;
     filters.push_back(".txt");
 
-    myDir.beginIteration(filters);
+    myDir.beginWalking(filters);
 
     std::string itPath;
-    while(myDir.getListOfFilesFromIterator(itPath, files))
+    while(myDir.fetchListFromWalker(itPath, files))
     {
         for(std::string &file : files)
             std::cout << itPath + "/" + file << std::endl;
