@@ -84,6 +84,11 @@ bool DirMan::exists()
     return exists(d->m_dirPath);
 }
 
+bool DirMan::existsRel(const std::string& dirPath)
+{
+    return exists(d->m_dirPath + "/" + dirPath);
+}
+
 bool DirMan::mkdir(const std::string &dirPath)
 {
     return mkAbsDir(d->m_dirPath + "/" + dirPath);

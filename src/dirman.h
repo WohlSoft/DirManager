@@ -62,9 +62,15 @@ public:
 
     /**
      * @brief Is this directory exists
-     * @return true is current directory is exists
+     * @return true if current directory is exists
      */
     bool        exists();
+
+    /**
+     * @brief Is directory relative to current is exists
+     * @return true if directory is exists
+     */
+    bool        existsRel(const std::string &dirPath);
 
     /**
      * @brief Check if any directory exists
@@ -79,12 +85,18 @@ public:
      * @return true if directory successfully creaetd
      */
     bool mkdir(const std::string &dirPath);
+
     /**
      * @brief Make directory with absolute path
      * @param dirPath absolute path to the new directory
      * @return true if directory successfully created
      */
     static bool mkAbsDir(const std::string &dirPath);
+    /**
+     * @brief Make directory with absolute path with making middle folders which are not exists
+     * @param dirPath absolute path to the new directory
+     * @return true if directories are successfully created
+     */
     static bool mkAbsPath(const std::string &dirPath);
 
     bool        beginWalking(const std::vector<std::string> &suffix_filters = std::vector<std::string>());
