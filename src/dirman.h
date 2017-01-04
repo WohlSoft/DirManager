@@ -37,7 +37,7 @@ class DirMan
 public:
 
     explicit DirMan(const std::string &dirPath = "./");
-    DirMan(const DirMan&) = default;
+    DirMan(const DirMan &) = default;
     virtual ~DirMan();
 
     /**
@@ -81,10 +81,20 @@ public:
 
     /**
      * @brief Make directory relative to current
-     * @param Relative directory path
+     * @param dirPath Relative directory path
      * @return true if directory successfully creaetd
      */
     bool mkdir(const std::string &dirPath);
+
+    /**
+     * @brief Remove directory (which must be empty) relative to current
+     * @param dirPath Relative directory path
+     * @return true if directory successfully removed
+     */
+    bool rmdir(const std::string &dirPath);
+
+    bool mkpath(const std::string &dirPath);
+    bool rmpath(const std::string &dirPath);
 
     /**
      * @brief Make directory with absolute path
@@ -92,12 +102,22 @@ public:
      * @return true if directory successfully created
      */
     static bool mkAbsDir(const std::string &dirPath);
+
+    /**
+     * @brief Remove directory (which must be empty) with absolute path
+     * @param dirPath absolute path to the directory to remove
+     * @return true if directory successfully removed
+     */
+    static bool rmAbsDir(const std::string &dirPath);
+
     /**
      * @brief Make directory with absolute path with making middle folders which are not exists
      * @param dirPath absolute path to the new directory
      * @return true if directories are successfully created
      */
     static bool mkAbsPath(const std::string &dirPath);
+
+    static bool rmAbsPath(const std::string &dirPath);
 
     bool        beginWalking(const std::vector<std::string> &suffix_filters = std::vector<std::string>());
     bool        fetchListFromWalker(std::string &curPath, std::vector<std::string> &list);

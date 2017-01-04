@@ -23,6 +23,7 @@ DEALINGS IN THE SOFTWARE.
 */
 
 #ifndef _WIN32
+#include <stdio.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -125,9 +126,94 @@ bool DirMan::mkAbsDir(const std::string &dirPath)
     return ::mkdir(dirPath.c_str(), S_IRWXU | S_IRWXG) == 0;
 }
 
+bool DirMan::rmAbsDir(const std::string &dirPath)
+{
+    return ::rmdir(dirPath.c_str()) == 0;
+}
+
 bool DirMan::mkAbsPath(const std::string &dirPath)
 {
-    return false;
+    char tmp[PATH_MAX];
+    char *p = NULL;
+    size_t len;
+
+    snprintf(tmp, sizeof(tmp), "%s", dirPath.c_str());
+    len = strlen(tmp);
+
+    if(tmp[len - 1] == '/')
+        tmp[len - 1] = 0;
+
+    for(p = tmp + 1; *p; p++)
+    {
+        if(*p == '/')
+        {
+            *p = 0;
+            ::mkdir(tmp, S_IRWXU | S_IRWXG);
+            *p = '/';
+        }
+    }
+    return ::mkdir(tmp, S_IRWXU | S_IRWXG) == 0;
+}
+
+bool DirMan::rmAbsPath(const std::string &dirPath)
+{
+    int ret = 0;
+    struct DirStackEntry
+    {
+        std::string path;
+        DIR         *d;
+        struct dirent *p;
+    };
+
+    std::stack<DirStackEntry> dirStack;
+    dirStack.push({dirPath, NULL, NULL});
+
+    while(!dirStack.empty())
+    {
+        DirStackEntry *e = &dirStack.top();
+        e->d = opendir(e->path.c_str());
+
+        bool walkUp = false;
+        if(e->d)
+        {
+            int ret2 = -1;
+            while((e->p = readdir(e->d)) != NULL)
+            {
+                struct stat st;
+                if(strcmp(e->p->d_name, ".") == 0 || strcmp(e->p->d_name, "..") == 0)
+                    continue;
+
+                if(fstatat(dirfd(e->d), e->p->d_name, &st, 0) < 0)
+                    continue;
+
+                std::string path = e->path + "/" + e->p->d_name;
+
+                if(S_ISDIR(st.st_mode))
+                {
+                    dirStack.push({path, NULL, NULL});
+                    walkUp = true;
+                    break;
+                }
+                else
+                {
+                    ret2 = ::unlink(path.c_str());
+                    if(ret2 != 0)
+                        ret = ret2;
+                }
+            }
+        }
+
+        if(!walkUp)
+        {
+            if(e->d) closedir(e->d);
+            int ret2 = ::rmdir(e->path.c_str());
+            if(ret2 != 0)
+                ret = ret2;
+            dirStack.pop();
+        }
+    }
+
+    return (ret == 0);
 }
 
 #endif

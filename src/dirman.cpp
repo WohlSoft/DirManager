@@ -60,9 +60,7 @@ DirMan::DirMan(const std::string &dirPath) :
 }
 
 DirMan::~DirMan()
-{
-    d.reset(nullptr);
-}
+{}
 
 void DirMan::setPath(const std::string &dirPath)
 {
@@ -92,6 +90,21 @@ bool DirMan::existsRel(const std::string& dirPath)
 bool DirMan::mkdir(const std::string &dirPath)
 {
     return mkAbsDir(d->m_dirPath + "/" + dirPath);
+}
+
+bool DirMan::rmdir(const std::string& dirPath)
+{
+    return rmAbsDir(d->m_dirPath + "/" + dirPath);
+}
+
+bool DirMan::mkpath(const std::string& dirPath)
+{
+    return mkAbsPath(d->m_dirPath + "/" + dirPath);
+}
+
+bool DirMan::rmpath(const std::string& dirPath)
+{
+    return rmAbsPath(d->m_dirPath + "/" + dirPath);
 }
 
 bool DirMan::beginWalking(const std::vector<std::string> &suffix_filters)

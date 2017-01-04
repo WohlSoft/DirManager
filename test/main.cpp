@@ -30,5 +30,27 @@ int main(int , char *[])
         std::cout.flush();
     }
 
+    std::cout << "=============Running test 4 (Create and delete single directory)=============" << std::endl;
+    if(myDir.mkdir("Directory which must not exist!!!"))
+        std::cout << "mkdir Ok!" << std::endl;
+    else
+        std::cout << "mkdir FAILED!" << std::endl;
+
+    if(myDir.rmdir("Directory which must not exist!!!"))
+        std::cout << "rmdir Ok!" << std::endl;
+    else
+        std::cout << "rmdir FAILED!" << std::endl;
+
+    std::cout << "=============Running test 5 (Create and delete directory treee)=============" << std::endl;
+    if(myDir.mkpath("Directory which must not exist!!!/wat/this is a true crap which must not exist!"))
+        std::cout << "mkpath Ok!" << std::endl;
+    else
+        std::cout << "mkpath FAILED!" << std::endl;
+
+    if(myDir.rmpath("Directory which must not exist!!!"))
+        std::cout << "rmpath Ok!" << std::endl;
+    else
+        std::cout << "rmpath FAILED!" << std::endl;
+
     return 0;
 }

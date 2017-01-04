@@ -6,6 +6,8 @@
 #include <vector>
 #include <stdlib.h>
 
+#include "dirman.h"
+
 template<class CHAR>
 static inline void delEnd(std::basic_string<CHAR> &dirPath, CHAR ch)
 {
