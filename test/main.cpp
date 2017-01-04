@@ -18,7 +18,7 @@ int main(int , char *[])
 
     std::cout << "=============Running test 3 (walk in the subdirectories)=============" << std::endl;
     std::vector<std::string> filters;
-    filters.push_back(".mid");
+    filters.push_back(".txt");
 
     myDir.beginIteration(filters);
 
@@ -27,6 +27,7 @@ int main(int , char *[])
     {
         for(std::string &file : files)
             std::cout << itPath + "/" + file << std::endl;
+        std::cout.flush();
     }
 
     return 0;

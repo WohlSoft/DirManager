@@ -26,6 +26,7 @@ DEALINGS IN THE SOFTWARE.
 
 #ifdef _WIN32
 #include <windows.h>
+#include <algorithm>
 //TODO
 #else
 #include <limits.h>
@@ -59,14 +60,14 @@ static std::string WStr2Str(const std::wstring &wstr)
 }
 #endif
 
-bool DirMan::matchSuffixFilters(const std::string &name)
+bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
 {
     bool found = false;
 
-    if(m_iterator.suffix_filters.empty())
+    if(suffixFilters.empty())
         return true;//If no filter, grand everything
 
-    for(const std::string &suffix : m_iterator.suffix_filters)
+    for(const std::string &suffix : suffixFilters)
     {
         if(suffix.size() > name.size())
             continue;
@@ -96,7 +97,13 @@ DirMan::~DirMan()
 void DirMan::setPath(const std::string &dirPath)
 {
     #ifdef _WIN32
-    m_dirPath = dirPath;
+    std::wstring dirPathW = Str2WStr(dirPath);
+    wchar_t fullPath[MAX_PATH];
+    GetFullPathNameW(dirPathW.c_str(), MAX_PATH, fullPath, NULL);
+    m_dirPathW = fullPath;
+    //Force UNIX paths
+    std::replace(m_dirPathW.begin(), m_dirPathW.end(), L'\\', L'/');
+    m_dirPath = WStr2Str(m_dirPathW);
     #else
     char resolved_path[PATH_MAX];
     memset(resolved_path, 0, PATH_MAX);
@@ -112,9 +119,33 @@ void DirMan::setPath(const std::string &dirPath)
     }
 }
 
-bool DirMan::getListOfFiles(std::vector<std::string> &list)
+bool DirMan::getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters)
 {
     list.clear();
+    #ifdef _WIN32
+    HANDLE hFind;
+    WIN32_FIND_DATAW data;
+
+    hFind = FindFirstFileW((m_dirPathW + L"/*").c_str(), &data);
+    if(hFind == INVALID_HANDLE_VALUE)
+        return false;
+    do
+    {
+        if((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+        {
+            if((wcscmp(data.cFileName, L"..") == 0) || (wcscmp(data.cFileName, L".") == 0))
+                continue;
+        }
+        else
+        {
+            std::string fileName = WStr2Str(data.cFileName);
+            if(matchSuffixFilters(fileName, suffix_filters))
+                list.push_back(fileName);
+        }
+    }
+    while(FindNextFileW(hFind, &data));
+    FindClose(hFind);
+    #else
     dirent *dent = NULL;
     DIR *srcdir = opendir(m_dirPath.c_str());
     if(srcdir == NULL)
@@ -129,10 +160,14 @@ bool DirMan::getListOfFiles(std::vector<std::string> &list)
         if(fstatat(dirfd(srcdir), dent->d_name, &st, 0) < 0)
             continue;
         if(S_ISREG(st.st_mode))
-            list.push_back(dent->d_name);
+        {
+            if(matchSuffixFilters(dent->d_name, suffix_filters))
+                list.push_back(dent->d_name);
+        }
     }
 
     closedir(srcdir);
+    #endif
     return true;
 }
 
@@ -149,7 +184,12 @@ bool DirMan::exists()
 bool DirMan::exists(const std::string &dirPath)
 {
     #ifdef _WIN32
-    return false;
+    DWORD ftyp = GetFileAttributesW(Str2WStr(dirPath).c_str());
+    if(ftyp == INVALID_FILE_ATTRIBUTES)
+        return false;   //something is wrong with your path!
+    if(ftyp & FILE_ATTRIBUTE_DIRECTORY)
+        return true;    // this is a directory!
+    return false;       // this is not a directory!
     #else
     DIR *dir = opendir(dirPath.c_str());
     if(dir)
@@ -193,6 +233,33 @@ bool DirMan::getListOfFilesFromIterator(std::string &curPath, std::vector<std::s
 
     std::string path = m_iterator.digStack.top();
     m_iterator.digStack.pop();
+
+    #ifdef _WIN32
+    HANDLE hFind;
+    WIN32_FIND_DATAW data;
+
+    hFind = FindFirstFileW(Str2WStr(path + "/*").c_str(), &data);
+    if(hFind == INVALID_HANDLE_VALUE)
+        return true; //Can't read this directory. Continue
+    do
+    {
+        if((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+        {
+            if((wcscmp(data.cFileName, L"..") == 0) || (wcscmp(data.cFileName, L".") == 0))
+                continue;
+
+            m_iterator.digStack.push(path + "/" + WStr2Str(data.cFileName));
+        }
+        else
+        {
+            std::string fileNameU = WStr2Str(data.cFileName);
+            if(matchSuffixFilters(fileNameU, m_iterator.suffix_filters))
+                list.push_back(fileNameU);
+        }
+    }
+    while(FindNextFileW(hFind, &data));
+    FindClose(hFind);
+    #else
     dirent *dent = NULL;
     DIR *srcdir = opendir(path.c_str());
     if(srcdir == NULL) //Can't read this directory. Continue
@@ -211,11 +278,12 @@ bool DirMan::getListOfFilesFromIterator(std::string &curPath, std::vector<std::s
             m_iterator.digStack.push(path + "/" + dent->d_name);
         else if(S_ISREG(st.st_mode))
         {
-            if(matchSuffixFilters(dent->d_name))
+            if(matchSuffixFilters(dent->d_name, m_iterator.suffix_filters))
                 list.push_back(dent->d_name);
         }
     }
     closedir(srcdir);
+    #endif
 
     curPath = path;
 

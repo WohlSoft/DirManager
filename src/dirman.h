@@ -32,6 +32,9 @@ DEALINGS IN THE SOFTWARE.
 class DirMan
 {
     std::string m_dirPath;
+    #ifdef _WIN32
+    std::wstring m_dirPathW;
+    #endif
     struct Iterator
     {
         std::stack<std::string>     digStack;
@@ -39,7 +42,7 @@ class DirMan
         std::vector<std::string>    suffix_filters;
     } m_iterator;
 
-    bool matchSuffixFilters(const std::string &name);
+    bool matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters);
 
 public:
     explicit DirMan(const std::string &dirPath = "./");
@@ -56,7 +59,7 @@ public:
      * @param list target list to output
      * @return true if success, false if any error has occouped
      */
-    bool     getListOfFiles(std::vector<std::string> &list);
+    bool     getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters = std::vector<std::string>());
 
     /**
      * @brief Absolude directory path
