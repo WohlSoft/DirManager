@@ -40,27 +40,23 @@ DEALINGS IN THE SOFTWARE.
 
 #include "dirman.h"
 
-#ifdef _WIN32
-static std::wstring Str2WStr(const std::string &str)
+class DirMan::DirMan_private
 {
-    std::wstring dest;
-    dest.resize(str.size());
-    int newlen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &dest[0], str.length());
-    dest.resize(newlen);
-    return dest;
-}
+    friend class DirMan;
+    std::string m_dirPath;
+    #ifdef _WIN32
+    std::wstring m_dirPathW;
+    #endif
+    struct Iterator
+    {
+        std::stack<std::string>     digStack;
+        std::vector<std::string>    filesList;
+        std::vector<std::string>    suffix_filters;
+    }
+    m_iterator;
+};
 
-static std::string WStr2Str(const std::wstring &wstr)
-{
-    std::string dest;
-    dest.resize((wstr.size() * 2));
-    int newlen = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), &dest[0], dest.size(), NULL, NULL);
-    dest.resize(newlen);
-    return dest;
-}
-#endif
-
-bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
+static bool matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
 {
     bool found = false;
 
@@ -85,18 +81,45 @@ bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::
     return found;
 }
 
-DirMan::DirMan(const std::string &dirPath):
-    m_dirPath(dirPath)
+
+#ifdef _WIN32
+static std::wstring Str2WStr(const std::string &str)
 {
+    std::wstring dest;
+    dest.resize(str.size());
+    int newlen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &dest[0], str.length());
+    dest.resize(newlen);
+    return dest;
+}
+
+static std::string WStr2Str(const std::wstring &wstr)
+{
+    std::string dest;
+    dest.resize((wstr.size() * 2));
+    int newlen = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), &dest[0], dest.size(), NULL, NULL);
+    dest.resize(newlen);
+    return dest;
+}
+#endif
+
+
+
+DirMan::DirMan(const std::string &dirPath)
+{
+    d = new DirMan_private;
     setPath(dirPath);
 }
 
 DirMan::~DirMan()
-{}
+{
+    delete d;
+}
 
 void DirMan::setPath(const std::string &dirPath)
 {
+    std::string &m_dirPath = d->m_dirPath;
     #ifdef _WIN32
+    std::string &m_dirPathW = d->m_dirPathW;
     std::wstring dirPathW = Str2WStr(dirPath);
     wchar_t fullPath[MAX_PATH];
     GetFullPathNameW(dirPathW.c_str(), MAX_PATH, fullPath, NULL);
@@ -114,7 +137,7 @@ void DirMan::setPath(const std::string &dirPath)
     if(!m_dirPath.empty())
     {
         char last = m_dirPath[m_dirPath.size() - 1];
-        if((last == '/') || (last == '\\'))
+        if(last == '/')
             m_dirPath.resize(m_dirPath.size() - 1);
     }
 }
@@ -122,7 +145,11 @@ void DirMan::setPath(const std::string &dirPath)
 bool DirMan::getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters)
 {
     list.clear();
+
+    std::string &m_dirPath = d->m_dirPath;
     #ifdef _WIN32
+    std::string &m_dirPathW = d->m_dirPathW;
+
     HANDLE hFind;
     WIN32_FIND_DATAW data;
 
@@ -173,12 +200,12 @@ bool DirMan::getListOfFiles(std::vector<std::string> &list, const std::vector<st
 
 std::string DirMan::absolutePath()
 {
-    return m_dirPath;
+    return d->m_dirPath;
 }
 
 bool DirMan::exists()
 {
-    return exists(m_dirPath);
+    return exists(d->m_dirPath);
 }
 
 bool DirMan::exists(const std::string &dirPath)
@@ -202,8 +229,37 @@ bool DirMan::exists(const std::string &dirPath)
     #endif
 }
 
+bool DirMan::mkdir(const std::string &dirPath)
+{
+    return mkAbsDir(d->m_dirPath + "/" + dirPath);
+}
+
+bool DirMan::mkAbsDir(const std::string &dirPath)
+{
+    #ifdef _WIN32
+    return (CreateDirectory(Str2WStr(dirPath), NULL) != FALSE);
+    #else
+    return ::mkdir(dirPath.c_str(), S_IRWXU | S_IRWXG) == 0;
+    #endif
+}
+
+bool DirMan::mkAbsPath(const std::string &dirPath)
+{
+    #ifdef _WIN32
+    return false;
+    #else
+    return false;
+    #endif
+}
+
 bool DirMan::beginIteration(const std::vector<std::string> &suffix_filters)
 {
+    std::string              &m_dirPath    = d->m_dirPath;
+    DirMan_private::Iterator &m_iterator   = d->m_iterator;
+    #ifdef _WIN32
+    std::string &m_dirPathW = d->m_dirPathW;
+    #endif
+
     // Clear previous state
     while(!m_iterator.digStack.empty())
         m_iterator.digStack.pop();
@@ -219,6 +275,7 @@ bool DirMan::beginIteration(const std::vector<std::string> &suffix_filters)
             f.push_back(std::tolower(c));
         m_iterator.suffix_filters.push_back(f);
     }
+
     // Push initial path
     m_iterator.digStack.push(m_dirPath);
     return true;
@@ -226,6 +283,8 @@ bool DirMan::beginIteration(const std::vector<std::string> &suffix_filters)
 
 bool DirMan::getListOfFilesFromIterator(std::string &curPath, std::vector<std::string> &list)
 {
+    DirMan_private::Iterator &m_iterator   = d->m_iterator;
+
     if(m_iterator.digStack.empty())
         return false;
 

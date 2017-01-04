@@ -31,21 +31,12 @@ DEALINGS IN THE SOFTWARE.
 
 class DirMan
 {
-    std::string m_dirPath;
-    #ifdef _WIN32
-    std::wstring m_dirPathW;
-    #endif
-    struct Iterator
-    {
-        std::stack<std::string>     digStack;
-        std::vector<std::string>    filesList;
-        std::vector<std::string>    suffix_filters;
-    } m_iterator;
-
-    bool matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters);
-
+    class DirMan_private;
+    DirMan_private *d;
 public:
+
     explicit DirMan(const std::string &dirPath = "./");
+
     virtual ~DirMan();
 
     /**
@@ -59,7 +50,8 @@ public:
      * @param list target list to output
      * @return true if success, false if any error has occouped
      */
-    bool     getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters = std::vector<std::string>());
+    bool     getListOfFiles(std::vector<std::string> &list,
+                            const std::vector<std::string> &suffix_filters = std::vector<std::string>());
 
     /**
      * @brief Absolude directory path
@@ -79,6 +71,20 @@ public:
      * @return true if directory is exists
      */
     static bool exists(const std::string &dirPath);
+
+    /**
+     * @brief Make directory relative to current
+     * @param Relative directory path
+     * @return true if directory successfully creaetd
+     */
+    bool mkdir(const std::string &dirPath);
+    /**
+     * @brief Make directory with absolute path
+     * @param dirPath absolute path to the new directory
+     * @return true if directory successfully created
+     */
+    static bool mkAbsDir(const std::string &dirPath);
+    static bool mkAbsPath(const std::string &dirPath);
 
     bool        beginIteration(const std::vector<std::string> &suffix_filters = std::vector<std::string>());
     bool        getListOfFilesFromIterator(std::string &curPath, std::vector<std::string> &list);
