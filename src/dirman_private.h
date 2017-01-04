@@ -8,6 +8,12 @@
 
 #include "dirman.h"
 
+#ifdef _WIN32
+typedef std::wstring    PathString;
+#else
+typedef std::string     PathString;
+#endif
+
 template<class CHAR>
 static inline void delEnd(std::basic_string<CHAR> &dirPath, CHAR ch)
 {
@@ -24,21 +30,16 @@ extern bool matchSuffixFilters(const std::string &name, const std::vector<std::s
 class DirMan::DirMan_private
 {
     friend class DirMan;
+
     std::string m_dirPath;
     #ifdef _WIN32
     std::wstring m_dirPathW;
     #endif
     struct DirWalkerState
     {
-        #ifdef _WIN32
-        std::stack<std::wstring>    digStack;
-        #else
-        std::stack<std::string>     digStack;
-        #endif
-        std::vector<std::string>    filesList;
-        std::vector<std::string>    suffix_filters;
-    }
-    m_walkerState;
+        std::stack<PathString>      digStack;
+        std::vector<PathString>     suffix_filters;
+    } m_walkerState;
 
     void setPath(const std::string &dirPath);
     bool getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters);
