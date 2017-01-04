@@ -31,14 +31,15 @@ class DirMan::DirMan_private
 {
     friend class DirMan;
 
-    std::string m_dirPath;
+    std::string     m_dirPath;
     #ifdef _WIN32
-    std::wstring m_dirPathW;
+    std::wstring    m_dirPathW;
     #endif
+
     struct DirWalkerState
     {
         std::stack<PathString>      digStack;
-        std::vector<PathString>     suffix_filters;
+        std::vector<std::string>    suffix_filters;
     } m_walkerState;
 
     void setPath(const std::string &dirPath);
