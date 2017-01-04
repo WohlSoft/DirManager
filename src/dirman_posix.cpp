@@ -114,7 +114,7 @@ bool DirMan::exists(const std::string &dirPath)
     if(dir)
     {
         closedir(dir);
-        return false;
+        return true;
     }
     else
         return false;
