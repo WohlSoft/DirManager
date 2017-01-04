@@ -28,6 +28,10 @@ DEALINGS IN THE SOFTWARE.
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <memory.h>
+
+#include "dirman.h"
+#include "dirman_private.h"
 
 void DirMan::DirMan_private::setPath(const std::string &dirPath)
 {
@@ -73,7 +77,7 @@ bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vect
 
     list.clear();
 
-    std::wstring path = m_walkerState.digStack.top();
+    std::string path = m_walkerState.digStack.top();
     m_walkerState.digStack.pop();
 
     dirent *dent = NULL;
