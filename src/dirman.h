@@ -117,9 +117,25 @@ public:
      */
     static bool mkAbsPath(const std::string &dirPath);
 
+    /**
+     * @brief Recursively remove directory and all files inside it
+     * @param dirPath absolute path to directory to delete
+     * @return true if everything is success, false on any error of deletion (write protection or access denied)
+     */
     static bool rmAbsPath(const std::string &dirPath);
 
+    /**
+     * @brief Starts directory walking
+     * @param suffix_filters list of suffix (filename ends) filters (if not defined, look for all files)
+     * @return true if Walker successfully initialized
+     */
     bool        beginWalking(const std::vector<std::string> &suffix_filters = std::vector<std::string>());
+    /**
+     * @brief Fetch list of files of the next directory
+     * @param curPath Current directory path
+     * @param list List of the files in the current directory
+     * @return false when directory walking has been completed
+     */
     bool        fetchListFromWalker(std::string &curPath, std::vector<std::string> &list);
 };
 

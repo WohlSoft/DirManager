@@ -190,15 +190,15 @@ bool DirMan::rmAbsPath(const std::string &dirPath)
 
                 if(S_ISDIR(st.st_mode))
                 {
+                    closedir(e->d);
                     dirStack.push({path, NULL, NULL});
                     walkUp = true;
                     break;
                 }
                 else
                 {
-                    ret2 = ::unlink(path.c_str());
-                    if(ret2 != 0)
-                        ret = ret2;
+                    if(::unlink(path.c_str()) != 0)
+                        ret = -1;
                 }
             }
         }
@@ -206,9 +206,9 @@ bool DirMan::rmAbsPath(const std::string &dirPath)
         if(!walkUp)
         {
             if(e->d) closedir(e->d);
-            int ret2 = ::rmdir(e->path.c_str());
-            if(ret2 != 0)
-                ret = ret2;
+            if(::rmdir(e->path.c_str()) != 0)
+                ret = -1;
+            e = NULL;
             dirStack.pop();
         }
     }

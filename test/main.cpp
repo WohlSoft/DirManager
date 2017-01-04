@@ -47,6 +47,19 @@ int main(int , char *[])
     else
         std::cout << "mkpath FAILED!" << std::endl;
 
+    myDir.mkdir("Directory which must not exist!!!/xxx");
+    myDir.mkpath("Directory which must not exist!!!/some/shit");
+
+    {
+        // Create a dummy file (may fail on the Windows if full path is non-ASCII)
+        FILE *shit = fopen((myDir.absolutePath() + "/Directory which must not exist!!!/shit.txt").c_str(), "w");
+        if(shit)
+        {
+            fprintf(shit, "boobooboobooboo");
+            fclose(shit);
+        }
+    }
+
     if(myDir.rmpath("Directory which must not exist!!!"))
         std::cout << "rmpath Ok!" << std::endl;
     else

@@ -141,13 +141,92 @@ bool DirMan::exists(const std::string &dirPath)
 
 bool DirMan::mkAbsDir(const std::string &dirPath)
 {
-    return (CreateDirectory(Str2WStr(dirPath).c_str(), NULL) != FALSE);
+    return (CreateDirectoryW(Str2WStr(dirPath).c_str(), NULL) != FALSE);
+}
+
+bool DirMan::rmAbsDir(const std::string &dirPath)
+{
+    return RemoveDirectoryW(Str2WStr(dirPath).c_str()) != FALSE;
 }
 
 bool DirMan::mkAbsPath(const std::string &dirPath)
 {
-#warning("DirMan::mkAbsPath is not implemented!")
-    return false;
+    wchar_t tmp[PATH_MAX];
+    wchar_t *p = NULL;
+    size_t len;
+    wcscpy(tmp, Str2WStr(dirPath).c_str());
+    len = wcslen(tmp);
+
+    if(tmp[len - 1] == L'/')
+        tmp[len - 1] = 0;
+
+    for(p = tmp + 1; *p; p++)
+    {
+        if(*p == L'/')
+        {
+            *p = 0;
+            CreateDirectoryW(tmp, NULL);
+            *p = '/';
+        }
+    }
+    return (CreateDirectoryW(tmp, NULL) != FALSE);
+}
+
+bool DirMan::rmAbsPath(const std::string &dirPath)
+{
+    BOOL ret = TRUE;
+    struct DirStackEntry
+    {
+        std::wstring path;
+        HANDLE hFind;
+        WIN32_FIND_DATAW data;
+    };
+
+    std::stack<DirStackEntry> dirStack;
+    DirStackEntry ds;
+    ds.hFind = NULL;
+    memset(&ds.data, 0, sizeof(WIN32_FIND_DATAW));
+    ds.path = Str2WStr(dirPath);
+    dirStack.push(ds);
+
+    while(!dirStack.empty())
+    {
+        DirStackEntry *e = &dirStack.top();
+        e->hFind = FindFirstFileW((e->path + L"/*").c_str(), &e->data);
+        bool walkUp = false;
+        if(e->hFind != INVALID_HANDLE_VALUE)
+        do
+        {
+            if((wcscmp(e->data.cFileName, L"..") == 0) || (wcscmp(e->data.cFileName, L".") == 0))
+                continue;
+            std::wstring path = e->path + L"/" + e->data.cFileName;
+
+            if((e->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+            {
+                FindClose(e->hFind);
+                ds.path = path;
+                dirStack.push(ds);
+                walkUp = true;
+                break;
+            }
+            else
+            {
+                if(DeleteFileW(path.c_str()) == FALSE)
+                    ret = FALSE;
+            }
+        }
+        while(FindNextFileW(e->hFind, &e->data));
+
+        if(!walkUp)
+        {
+            if(e->hFind) FindClose(e->hFind);
+            if(RemoveDirectoryW(e->path.c_str()) == FALSE)
+                ret = FALSE;
+            e = NULL;
+            dirStack.pop();
+        }
+    }
+    return (ret == TRUE);
 }
 
 #endif
