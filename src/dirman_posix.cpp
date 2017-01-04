@@ -176,7 +176,6 @@ bool DirMan::rmAbsPath(const std::string &dirPath)
         bool walkUp = false;
         if(e->d)
         {
-            int ret2 = -1;
             while((e->p = readdir(e->d)) != NULL)
             {
                 struct stat st;
