@@ -37,7 +37,8 @@ class DirMan
 public:
 
     explicit DirMan(const std::string &dirPath = "./");
-    DirMan(const DirMan &) = default;
+    DirMan(const DirMan &dir);
+
     virtual ~DirMan();
 
     /**
@@ -53,6 +54,14 @@ public:
      */
     bool     getListOfFiles(std::vector<std::string> &list,
                             const std::vector<std::string> &suffix_filters = std::vector<std::string>());
+
+    /**
+     * @brief Get list of directories in this directory
+     * @param list target list to output
+     * @return true if success, false if any error has occouped
+     */
+    bool     getListOfFolders(std::vector<std::string> &list,
+                              const std::vector<std::string> &suffix_filters = std::vector<std::string>());
 
     /**
      * @brief Absolude directory path

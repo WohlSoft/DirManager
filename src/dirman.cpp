@@ -59,6 +59,12 @@ DirMan::DirMan(const std::string &dirPath) :
     setPath(dirPath);
 }
 
+DirMan::DirMan(const DirMan &dir) :
+    d(new DirMan_private)
+{
+    setPath(dir.d->m_dirPath);
+}
+
 DirMan::~DirMan()
 {}
 
@@ -72,6 +78,11 @@ bool DirMan::getListOfFiles(std::vector<std::string> &list, const std::vector<st
     return d->getListOfFiles(list, suffix_filters);
 }
 
+bool DirMan::getListOfFolders(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters)
+{
+    return d->getListOfFolders(list, suffix_filters);
+}
+
 std::string DirMan::absolutePath()
 {
     return d->m_dirPath;
@@ -82,7 +93,7 @@ bool DirMan::exists()
     return exists(d->m_dirPath);
 }
 
-bool DirMan::existsRel(const std::string& dirPath)
+bool DirMan::existsRel(const std::string &dirPath)
 {
     return exists(d->m_dirPath + "/" + dirPath);
 }
@@ -92,17 +103,17 @@ bool DirMan::mkdir(const std::string &dirPath)
     return mkAbsDir(d->m_dirPath + "/" + dirPath);
 }
 
-bool DirMan::rmdir(const std::string& dirPath)
+bool DirMan::rmdir(const std::string &dirPath)
 {
     return rmAbsDir(d->m_dirPath + "/" + dirPath);
 }
 
-bool DirMan::mkpath(const std::string& dirPath)
+bool DirMan::mkpath(const std::string &dirPath)
 {
     return mkAbsPath(d->m_dirPath + "/" + dirPath);
 }
 
-bool DirMan::rmpath(const std::string& dirPath)
+bool DirMan::rmpath(const std::string &dirPath)
 {
     return rmAbsPath(d->m_dirPath + "/" + dirPath);
 }

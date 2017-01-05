@@ -70,6 +70,33 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
     return true;
 }
 
+bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, const std::vector<std::string>& suffix_filters)
+{
+    list.clear();
+
+    dirent *dent = NULL;
+    DIR *srcdir = opendir(m_dirPath.c_str());
+    if(srcdir == NULL)
+        return false;
+
+    while((dent = readdir(srcdir)) != NULL)
+    {
+        struct stat st;
+        if(strcmp(dent->d_name, ".") == 0 || strcmp(dent->d_name, "..") == 0)
+            continue;
+
+        if(fstatat(dirfd(srcdir), dent->d_name, &st, 0) < 0)
+            continue;
+
+        if(S_ISDIR(st.st_mode))
+        {
+            if(matchSuffixFilters(dent->d_name, suffix_filters))
+                list.push_back(dent->d_name);
+        }
+    }
+    closedir(srcdir);
+    return true;
+}
 
 bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vector<std::string> &list)
 {

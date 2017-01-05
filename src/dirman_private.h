@@ -44,6 +44,7 @@ class DirMan::DirMan_private
 
     void setPath(const std::string &dirPath);
     bool getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters);
+    bool getListOfFolders(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters);
     bool fetchListFromWalker(std::string &curPath, std::vector<std::string> &list);
 
 public:

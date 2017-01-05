@@ -89,6 +89,32 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
     return true;
 }
 
+bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters)
+{
+    list.clear();
+    HANDLE hFind;
+    WIN32_FIND_DATAW data;
+
+    hFind = FindFirstFileW((m_dirPathW + L"/*").c_str(), &data);
+    if(hFind == INVALID_HANDLE_VALUE)
+        return false;
+    do
+    {
+        if((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+        {
+            if((wcscmp(data.cFileName, L"..") == 0) || (wcscmp(data.cFileName, L".") == 0))
+                continue;
+            std::string fileName = WStr2Str(data.cFileName);
+            if(matchSuffixFilters(fileName, suffix_filters))
+                list.push_back(fileName);
+        }
+    }
+    while(FindNextFileW(hFind, &data));
+    FindClose(hFind);
+
+    return true;
+}
+
 bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vector<std::string> &list)
 {
     if(m_walkerState.digStack.empty())
