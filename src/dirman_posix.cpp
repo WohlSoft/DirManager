@@ -38,7 +38,8 @@ void DirMan::DirMan_private::setPath(const std::string &dirPath)
 {
     char resolved_path[PATH_MAX];
     memset(resolved_path, 0, PATH_MAX);
-    realpath(dirPath.c_str(), resolved_path);
+    char* realPath = realpath(dirPath.c_str(), resolved_path);
+    (void)realPath;
     m_dirPath = resolved_path;
     delEnd(m_dirPath, '/');
 }
