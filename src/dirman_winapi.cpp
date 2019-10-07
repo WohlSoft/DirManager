@@ -33,7 +33,7 @@ static std::wstring Str2WStr(const std::string &str)
 {
     std::wstring dest;
     dest.resize(str.size());
-    int newlen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &dest[0], str.length());
+    int newlen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), static_cast<int>(str.length()), &dest[0], static_cast<int>(str.length()));
     dest.resize(newlen);
     return dest;
 }
@@ -42,7 +42,7 @@ static std::string WStr2Str(const std::wstring &wstr)
 {
     std::string dest;
     dest.resize((wstr.size() * 2));
-    int newlen = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), &dest[0], dest.size(), NULL, NULL);
+    int newlen = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.length()), &dest[0], static_cast<int>(dest.size()), NULL, NULL);
     dest.resize(newlen);
     return dest;
 }
@@ -177,7 +177,7 @@ bool DirMan::rmAbsDir(const std::string &dirPath)
 
 bool DirMan::mkAbsPath(const std::string &dirPath)
 {
-    wchar_t tmp[PATH_MAX];
+    wchar_t tmp[MAX_PATH];
     wchar_t *p = NULL;
     size_t len;
     wcscpy(tmp, Str2WStr(dirPath).c_str());
