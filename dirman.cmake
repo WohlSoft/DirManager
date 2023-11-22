@@ -5,7 +5,7 @@ set(DIRMANAGER_SRCS)
 
 list(APPEND DIRMANAGER_SRCS
     ${CMAKE_CURRENT_LIST_DIR}/src/dirman.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/include/DirManager/dirman.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/include/DirManager/dirman.h
     ${CMAKE_CURRENT_LIST_DIR}/src/dirman_private.h
 )
 
