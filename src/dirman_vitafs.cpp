@@ -1,7 +1,7 @@
 /*
 DirMan - A small crossplatform class to manage directories
 
-Copyright (c) 2017-2022 Vitaliy Novichkov <admin@wohlnet.ru>
+Copyright (c) 2017-2023 Vitaliy Novichkov <admin@wohlnet.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -112,7 +112,7 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
             }
             /* code */
         } while (res > 0);
-        
+
         sceIoDclose(dfd);
     }
     return true;
@@ -120,7 +120,7 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
 
 static inline int quick_stat_folders(
     char* m_dirPath,
-    char* path, 
+    char* path,
     std::vector<std::string>& list,
     const std::vector<std::string>& suffix_filters)
 {
@@ -154,7 +154,7 @@ static inline int quick_stat_folders(
             }
         } while (res > 0);
     }
-    
+
     sceIoDclose(dfd);
 
     return _added;
@@ -164,7 +164,7 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
 {
     PUT_THREAD_GUARD();
     list.clear();
-    
+
     SceUID dfd = sceIoDopen(m_dirPath.c_str());
     if(dfd >= 0)
     {
@@ -187,7 +187,7 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
                     {
                         list.push_back(dirEntry.d_name);
                     }
-                    // // Get Path info 
+                    // // Get Path info
                     // int ret = quick_stat_folders(m_dirPath.c_str(), dirEntry.d_name, list, suffix_filters);
                     // if (ret <= 0)
                     // {
@@ -201,7 +201,7 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
             }
             /* code */
         } while (res > 0);
-        
+
         sceIoDclose(dfd);
     }
 
@@ -230,7 +230,7 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
     //     else
     //     {
     //         pLogDebug("%s st.st_mode is not a dir (st.st_mode = %d)", st.st_mode, dent->d_name);
-            
+
     //     }
     // }
     // closedir(srcdir);
@@ -336,7 +336,7 @@ bool DirMan::mkAbsPath(const std::string &dirPath)
 
     if(tmp[len - 1] == '/')
         tmp[len - 1] = 0;
-    
+
     for(size_t i = 0; i < len; i++)
     {
         if(tmp[i] == '/')
