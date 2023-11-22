@@ -5,7 +5,7 @@ CONFIG -= qt
 
 CONFIG += c++11
 
-include(src/dirman.pri)
+include(dirman.pri)
 
 SOURCES += \
     test/main.cpp

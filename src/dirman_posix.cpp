@@ -31,7 +31,7 @@ DEALINGS IN THE SOFTWARE.
 #include <unistd.h>
 #include <memory.h>
 
-#include "dirman.h"
+#include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 
 #if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED < 1010 && defined(DIRMAN_HAS_FSSTATAT)

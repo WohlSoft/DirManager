@@ -23,7 +23,7 @@ DEALINGS IN THE SOFTWARE.
 */
 
 #include <locale>
-#include "dirman.h"
+#include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 
 bool matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)

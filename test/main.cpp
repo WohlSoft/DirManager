@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <dirman.h>
+#include <DirManager/dirman.h>
 
 int main(int , char *[])
 {

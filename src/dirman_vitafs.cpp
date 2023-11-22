@@ -39,7 +39,7 @@ DEALINGS IN THE SOFTWARE.
 
 
 
-#include "dirman.h"
+#include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 #include <mutex>
 #include <limits.h>

@@ -26,7 +26,7 @@ DEALINGS IN THE SOFTWARE.
 #include <windows.h>
 #include <algorithm>
 
-#include "dirman.h"
+#include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 
 static std::wstring Str2WStr(const std::string &str)

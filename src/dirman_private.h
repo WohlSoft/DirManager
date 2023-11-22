@@ -30,7 +30,7 @@ DEALINGS IN THE SOFTWARE.
 #include <vector>
 #include <stdlib.h>
 
-#include "dirman.h"
+#include "../include/DirManager/dirman.h"
 
 #ifdef _WIN32
 typedef std::wstring    PathString;
