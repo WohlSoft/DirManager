@@ -1,4 +1,6 @@
 # message("Path to DirManager is [${CMAKE_CURRENT_LIST_DIR}]")
+include(CheckFunctionExists)
+
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 set(DIRMANAGER_SRCS)
