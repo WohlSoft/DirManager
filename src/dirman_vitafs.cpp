@@ -39,6 +39,10 @@
 
 
 
+#ifdef PGE_USE_ARCHIVES
+#   include "Archives/archives.h"
+#endif
+
 #include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 #include <mutex>
@@ -60,6 +64,19 @@ static constexpr const SceMode gSceDirMode = 0777;
 void DirMan::DirMan_private::setPath(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+    {
+        m_dirPath = dirPath;
+
+        if(m_dirPath.size() > 2 && m_dirPath[m_dirPath.size() - 2] == ':')
+            return;
+
+        delEnd(m_dirPath, '/');
+        return;
+    }
+#endif // PGE_USE_ARCHIVES
+
 #ifdef VITA
     if(dirPath.empty())
     {
@@ -83,6 +100,23 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
 {
     PUT_THREAD_GUARD();
     list.clear();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(m_dirPath))
+    {
+        for(auto& ent : Archives::list_dir(m_dirPath.c_str()))
+        {
+            if(ent.type != Archives::PATH_FILE)
+                continue;
+
+            if(!matchSuffixFilters(ent.name, suffix_filters))
+                continue;
+
+            list.push_back(std::move(ent.name));
+        }
+        return true;
+    }
+#endif // PGE_USE_ARCHIVES
 
     // open directory fd
     SceUID dfd = sceIoDopen(m_dirPath.c_str());
@@ -165,6 +199,23 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
     PUT_THREAD_GUARD();
     list.clear();
 
+ #ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(m_dirPath))
+    {
+        for(auto& ent : Archives::list_dir(m_dirPath.c_str()))
+        {
+            if(ent.type != Archives::PATH_DIR)
+                continue;
+
+            if(!matchSuffixFilters(ent.name, suffix_filters))
+                continue;
+
+            list.push_back(std::move(ent.name));
+        }
+        return true;
+    }
+#endif // PGE_USE_ARCHIVES
+
     SceUID dfd = sceIoDopen(m_dirPath.c_str());
     if(dfd >= 0)
     {
@@ -240,6 +291,13 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
 bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vector<std::string> &list)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    // unsupported for now
+    if(Archives::has_prefix(m_dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     (void)list;
     pLogWarning("[dirman_vitafs] ::fetchListFromWalker called. CurPath: %s", curPath.c_str());
 
@@ -284,6 +342,11 @@ bool DirMan::exists(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
 
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return Archives::exists(dirPath.c_str()) == Archives::PATH_DIR;
+#endif // PGE_USE_ARCHIVES
+
     SceIoStat _stat;
 
     if(dirPath == "/")
@@ -314,18 +377,36 @@ bool DirMan::exists(const std::string &dirPath)
 bool DirMan::mkAbsDir(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     return (sceIoMkdir(dirPath.c_str(), gSceDirMode) == 0);
 }
 
 bool DirMan::rmAbsDir(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     return (sceIoRmdir(dirPath.c_str()) == 0);
 }
 
 bool DirMan::mkAbsPath(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     char tmp[PATH_MAX];
     char *p = NULL;
     size_t len;
@@ -367,6 +448,12 @@ bool DirMan::mkAbsPath(const std::string &dirPath)
 bool DirMan::rmAbsPath(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     pLogWarning("TODO: need to remove abs path for %s", dirPath.c_str());
     return -1;
 

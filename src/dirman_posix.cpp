@@ -38,6 +38,10 @@
 #   undef DIRMAN_HAS_FSSTATAT  /*This call isn't available at macOS older than 10.10 */
 #endif
 
+#ifdef PGE_USE_ARCHIVES
+#   include "Archives/archives.h"
+#endif
+
 #ifdef __WIIU__
 // Workaround to avoid the EIO error on virtual directories
 
@@ -79,6 +83,19 @@ static int get_sys_path_offset(const std::string &dirPath)
 
 void DirMan::DirMan_private::setPath(const std::string &dirPath)
 {
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+    {
+        m_dirPath = dirPath;
+
+        if(m_dirPath.size() > 2 && m_dirPath[m_dirPath.size() - 2] == ':')
+            return;
+
+        delEnd(m_dirPath, '/');
+        return;
+    }
+#endif // PGE_USE_ARCHIVES
+
 #ifdef DIRMAN_HAS_REALPATH
     char rp[PATH_MAX];
     memset(rp, 0, PATH_MAX);
@@ -102,6 +119,23 @@ void DirMan::DirMan_private::setPath(const std::string &dirPath)
 bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters)
 {
     list.clear();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(m_dirPath))
+    {
+        for(auto& ent : Archives::list_dir(m_dirPath.c_str()))
+        {
+            if(ent.type != Archives::PATH_FILE)
+                continue;
+
+            if(!matchSuffixFilters(ent.name, suffix_filters))
+                continue;
+
+            list.push_back(std::move(ent.name));
+        }
+        return true;
+    }
+#endif // PGE_USE_ARCHIVES
 
     dirent *dent = nullptr;
     DIR *srcdir = opendir(m_dirPath.c_str());
@@ -143,6 +177,24 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
 bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, const std::vector<std::string>& suffix_filters)
 {
     list.clear();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(m_dirPath))
+    {
+        for(auto& ent : Archives::list_dir(m_dirPath.c_str()))
+        {
+            if(ent.type != Archives::PATH_DIR)
+                continue;
+
+            if(!matchSuffixFilters(ent.name, suffix_filters))
+                continue;
+
+            list.push_back(std::move(ent.name));
+        }
+        return true;
+    }
+#endif // PGE_USE_ARCHIVES
+
     dirent *dent = nullptr;
     DIR *srcdir = opendir(m_dirPath.c_str());
 
@@ -183,6 +235,13 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
 bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vector<std::string> &list)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    // unsupported for now
+    if(Archives::has_prefix(m_dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     if(m_walkerState.digStack.empty())
         return false;
 
@@ -235,6 +294,12 @@ bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vect
 bool DirMan::exists(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return Archives::exists(dirPath.c_str()) == Archives::PATH_DIR;
+#endif // PGE_USE_ARCHIVES
+
     DIR *dir = opendir(dirPath.c_str());
     if(dir)
     {
@@ -248,18 +313,36 @@ bool DirMan::exists(const std::string &dirPath)
 bool DirMan::mkAbsDir(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     return ::mkdir(dirPath.c_str(), S_IRWXU | S_IRWXG) == 0;
 }
 
 bool DirMan::rmAbsDir(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     return ::rmdir(dirPath.c_str()) == 0;
 }
 
 bool DirMan::mkAbsPath(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     char tmp[PATH_MAX + 1];
     char *p = nullptr;
     size_t len;
@@ -298,6 +381,12 @@ bool DirMan::mkAbsPath(const std::string &dirPath)
 bool DirMan::rmAbsPath(const std::string &dirPath)
 {
     PUT_THREAD_GUARD();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     int ret = 0;
     struct DirStackEntry
     {

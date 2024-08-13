@@ -49,6 +49,19 @@ static std::string WStr2Str(const std::wstring &wstr)
 
 void DirMan::DirMan_private::setPath(const std::string &dirPath)
 {
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+    {
+        m_dirPath = dirPath;
+
+        if(m_dirPath.size() > 2 && m_dirPath[m_dirPath.size() - 2] == ':')
+            return;
+
+        delEnd(m_dirPath, '/');
+        return;
+    }
+#endif // PGE_USE_ARCHIVES
+
     m_dirPathW = Str2WStr(dirPath);
     wchar_t fullPath[MAX_PATH];
     GetFullPathNameW(m_dirPathW.c_str(), MAX_PATH, fullPath, NULL);
@@ -63,6 +76,24 @@ void DirMan::DirMan_private::setPath(const std::string &dirPath)
 bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters)
 {
     list.clear();
+
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(m_dirPath))
+    {
+        for(auto& ent : Archives::list_dir(m_dirPath.c_str()))
+        {
+            if(ent.type != Archives::PATH_FILE)
+                continue;
+
+            if(!matchSuffixFilters(ent.name, suffix_filters))
+                continue;
+
+            list.push_back(std::move(ent.name));
+        }
+        return true;
+    }
+#endif // PGE_USE_ARCHIVES
+
     HANDLE hFind;
     WIN32_FIND_DATAW data;
 
@@ -92,6 +123,24 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
 bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string> &list, const std::vector<std::string> &suffix_filters)
 {
     list.clear();
+
+ #ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(m_dirPath))
+    {
+        for(auto& ent : Archives::list_dir(m_dirPath.c_str()))
+        {
+            if(ent.type != Archives::PATH_DIR)
+                continue;
+
+            if(!matchSuffixFilters(ent.name, suffix_filters))
+                continue;
+
+            list.push_back(std::move(ent.name));
+        }
+        return true;
+    }
+#endif // PGE_USE_ARCHIVES
+
     HANDLE hFind;
     WIN32_FIND_DATAW data;
 
@@ -117,6 +166,12 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string> &list, co
 
 bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vector<std::string> &list)
 {
+#ifdef PGE_USE_ARCHIVES
+    // unsupported for now
+    if(Archives::has_prefix(m_dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     if(m_walkerState.digStack.empty())
         return false;
 
@@ -157,6 +212,11 @@ bool DirMan::DirMan_private::fetchListFromWalker(std::string &curPath, std::vect
 
 bool DirMan::exists(const std::string &dirPath)
 {
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return Archives::exists(dirPath.c_str()) == Archives::PATH_DIR;
+#endif // PGE_USE_ARCHIVES
+
     DWORD ftyp = GetFileAttributesW(Str2WStr(dirPath).c_str());
     if(ftyp == INVALID_FILE_ATTRIBUTES)
         return false;   //something is wrong with your path!
@@ -167,16 +227,31 @@ bool DirMan::exists(const std::string &dirPath)
 
 bool DirMan::mkAbsDir(const std::string &dirPath)
 {
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     return (CreateDirectoryW(Str2WStr(dirPath).c_str(), NULL) != FALSE);
 }
 
 bool DirMan::rmAbsDir(const std::string &dirPath)
 {
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     return RemoveDirectoryW(Str2WStr(dirPath).c_str()) != FALSE;
 }
 
 bool DirMan::mkAbsPath(const std::string &dirPath)
 {
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     wchar_t tmp[MAX_PATH];
     wchar_t *p = NULL;
     size_t len;
@@ -200,6 +275,11 @@ bool DirMan::mkAbsPath(const std::string &dirPath)
 
 bool DirMan::rmAbsPath(const std::string &dirPath)
 {
+#ifdef PGE_USE_ARCHIVES
+    if(Archives::has_prefix(dirPath))
+        return false;
+#endif // PGE_USE_ARCHIVES
+
     BOOL ret = TRUE;
     struct DirStackEntry
     {
