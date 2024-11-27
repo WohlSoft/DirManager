@@ -26,6 +26,10 @@
 #include <windows.h>
 #include <algorithm>
 
+#ifdef PGE_USE_ARCHIVES
+#   include "Archives/archives.h"
+#endif
+
 #include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 
