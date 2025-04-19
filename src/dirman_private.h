@@ -91,8 +91,6 @@ static inline void delEnd(std::basic_string<CHAR> &dirPath, CHAR ch)
     }
 }
 
-extern bool matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters);
-
 class DirMan::DirMan_private
 {
     friend class DirMan;

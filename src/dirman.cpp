@@ -26,7 +26,7 @@
 #include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 
-bool matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
+bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
 {
     std::locale loc;
 

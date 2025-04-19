@@ -42,6 +42,13 @@ public:
     virtual ~DirMan();
 
     /**
+     * @brief Check if a filename matches a set of suffix filters (case-insensitive)
+     * @param name provided filename
+     * @param suffixFilters list of possible filters
+     */
+    static bool matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters);
+
+    /**
      * @brief Change root path
      * @param dirPath absolute or relative to current application path
      */
