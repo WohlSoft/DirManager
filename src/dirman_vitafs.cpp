@@ -178,7 +178,7 @@ static inline int quick_stat_folders(
 
                 if (SCE_S_ISDIR(dirEntry.d_stat.st_mode))
                 {
-                    if(matchSuffixFilters(dirEntry.d_name , suffix_filters))
+                    if(DirMan::matchSuffixFilters(dirEntry.d_name , suffix_filters))
                     {
                         pLogDebug("(quick_stat) Directory match! `%s`", dirEntry.d_name);
                         list.push_back(dirEntry.d_name);
