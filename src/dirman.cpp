@@ -22,9 +22,28 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <locale>
 #include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
+
+#ifdef PGE_FILES_PRESENT
+#    include "Utils/files.h"
+
+bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
+{
+    if(suffixFilters.empty())
+        return true;//If no filter, grand everything
+
+    for(const std::string &suffix : suffixFilters)
+    {
+        if(Files::hasSuffix(name, suffix))
+            return true;
+    }
+
+    return false;
+}
+
+#else
+#    include <locale>
 
 bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
 {
@@ -56,6 +75,7 @@ bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::
 
     return false;
 }
+#endif // #ifdef PGE_FILES_PRESENT
 
 DirMan::DirMan(const std::string &dirPath) :
     d(new DirMan_private)
@@ -122,6 +142,7 @@ bool DirMan::rmpath(const std::string &dirPath)
     return rmAbsPath(d->m_dirPath + "/" + dirPath);
 }
 
+#ifndef PGE_FILES_PRESENT
 bool DirMan::beginWalking(const std::vector<std::string> &suffix_filters)
 {
     std::locale loc;
@@ -157,3 +178,4 @@ bool DirMan::fetchListFromWalker(std::string &curPath, std::vector<std::string> 
 {
     return d->fetchListFromWalker(curPath, list);
 }
+#endif // #ifndef PGE_FILES_PRESENT
