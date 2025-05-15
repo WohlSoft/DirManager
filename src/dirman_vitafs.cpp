@@ -407,34 +407,44 @@ bool DirMan::mkAbsPath(const std::string &dirPath)
         return false;
 #endif // PGE_USE_ARCHIVES
 
-    char tmp[PATH_MAX];
+    char tmp[PATH_MAX + 1];
     char *p = NULL;
     size_t len;
+    int err;
     uint16_t first_slash = 0;
+    SceIoStat _stat;
 
-    snprintf(tmp, sizeof(tmp), "%s", dirPath.c_str());
+    memset(tmp, 0, sizeof(tmp));
+    snprintf(tmp, PATH_MAX, "%s", dirPath.c_str());
     len = strlen(tmp);
 
-    if(tmp[len - 1] == '/')
+    if(len > 0 && tmp[len - 1] == '/')
         tmp[len - 1] = 0;
 
     for(size_t i = 0; i < len; i++)
     {
         if(tmp[i] == '/')
+        {
             first_slash = i;
+            break;
+        }
     }
 
-    for(p = (tmp + first_slash + 1); *p; p++)
+    for(p = (tmp + first_slash + 1); *p; ++p)
     {
         if(*p == '/')
         {
             *p = 0;
-            int err = sceIoMkdir(tmp, gSceDirMode);
-            if((err != 0))
+            if(sceIoGetstat(tmp, &_stat) < 0)
             {
-                pLogDebug("err != 0 when calling sceIoMkdir for mkabspath (%s was the path)", tmp);
-                *p = '/';
-                return false;
+                // Attempt to make a directory if it really doesn't exist
+                err = sceIoMkdir(tmp, gSceDirMode);
+                if(err != 0)
+                {
+                    pLogDebug("err != 0 when calling sceIoMkdir for mkabspath (%s was the path)", tmp);
+                    *p = '/';
+                    return false;
+                }
             }
             *p = '/';
         }
