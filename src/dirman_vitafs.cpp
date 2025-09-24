@@ -24,7 +24,7 @@
 
 
 #include <sys/dirent.h>
-#if defined(__VITA__)
+#if defined(VITA)
 #   include <psp2/io/devctl.h>
 #   include <psp2/io/dirent.h>
 #   include <psp2/io/fcntl.h>
