@@ -23,16 +23,19 @@
  */
 
 
-#ifdef VITA
 #include <sys/dirent.h>
-
-#include <psp2/io/devctl.h>
-#include <psp2/io/dirent.h>
-#include <psp2/io/fcntl.h>
-#include <psp2/io/stat.h>
+#if defined(__VITA__)
+#   include <psp2/io/devctl.h>
+#   include <psp2/io/dirent.h>
+#   include <psp2/io/fcntl.h>
+#   include <psp2/io/stat.h>
+#   define XTECH_S_DIR SCE_S_ISDIR
+#elif defined(__PSP__)
+#   include <pspiofilemgr.h>
+#   define XTECH_S_DIR FIO_S_ISDIR
+#endif
 #include <sys/fcntl.h>
 #include <dirent.h>
-#endif
 
 #include <unistd.h>
 #include <memory.h>
@@ -77,12 +80,13 @@ void DirMan::DirMan_private::setPath(const std::string &dirPath)
     }
 #endif // PGE_USE_ARCHIVES
 
-#ifdef VITA
+#if defined(VITA) || defined(__PSP__)
     if(dirPath.empty())
     {
         pLogWarning("[dirman_vitafs] WARNING: ::setPath called with dirPath of %s", dirPath.c_str());
         return;
     }
+
     m_dirPath = dirPath;
     delEnd(m_dirPath, '/');
 #else
@@ -136,7 +140,7 @@ bool DirMan::DirMan_private::getListOfFiles(std::vector<std::string> &list, cons
                 // pLogDebug("Discovered new FILE path `%s`", new_path);
 
                 // matching non-directories
-                if (!SCE_S_ISDIR(dirEntry.d_stat.st_mode))
+                if(!XTECH_S_DIR(dirEntry.d_stat.st_mode))
                 {
                     if(matchSuffixFilters(dirEntry.d_name , suffix_filters))
                             list.push_back(dirEntry.d_name);
@@ -176,7 +180,7 @@ static inline int quick_stat_folders(
                 snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", m_dirPath, hasEndSlash(m_dirPath) ? "" : "/", dirEntry.d_name);
                 // pLogDebug("Discovered new path `%s`", new_path);
 
-                if (SCE_S_ISDIR(dirEntry.d_stat.st_mode))
+                if (XTECH_S_DIR(dirEntry.d_stat.st_mode))
                 {
                     if(DirMan::matchSuffixFilters(dirEntry.d_name , suffix_filters))
                     {
@@ -232,7 +236,7 @@ bool DirMan::DirMan_private::getListOfFolders(std::vector<std::string>& list, co
                 snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", m_dirPath.c_str(), hasEndSlash((char*)m_dirPath.c_str()) ? "" : "/", dirEntry.d_name);
                 // pLogDebug("Discovered new FOLDER path `%s`", new_path);
 
-                if (SCE_S_ISDIR(dirEntry.d_stat.st_mode))
+                if (XTECH_S_DIR(dirEntry.d_stat.st_mode))
                 {
                     if(matchSuffixFilters(dirEntry.d_name , suffix_filters))
                     {
