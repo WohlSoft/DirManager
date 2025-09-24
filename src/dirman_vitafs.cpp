@@ -351,7 +351,9 @@ bool DirMan::exists(const std::string &dirPath)
         return Archives::exists(dirPath.c_str()) == Archives::PATH_DIR;
 #endif // PGE_USE_ARCHIVES
 
+#if !defined(__PSP__)
     SceIoStat _stat;
+#endif
 
     if(dirPath == "/")
     {
@@ -359,6 +361,15 @@ bool DirMan::exists(const std::string &dirPath)
         return false;
     }
 
+#if defined(__PSP__)
+    SceUID dfd = sceIoDopen(dirPath.c_str());
+    if(dfd >= 0)
+    {
+        sceIoDclose(dfd);
+        return true;
+    }
+    return false;
+#else
     if(sceIoGetstat(dirPath.c_str(), &_stat) < 0)
     {
         pLogWarning("[dirman_vitafs]  File at path %s doesn't exist.", dirPath.c_str());
@@ -366,6 +377,8 @@ bool DirMan::exists(const std::string &dirPath)
     }
 
     return true;
+#endif
+
 
 
     // DIR *dir = opendir(dirPath.c_str());
