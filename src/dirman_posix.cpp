@@ -31,6 +31,10 @@
 #include <unistd.h>
 #include <memory.h>
 
+#ifdef __HAIKU__
+#   include <storage/Directory.h>
+#endif
+
 #include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 
@@ -319,7 +323,11 @@ bool DirMan::mkAbsDir(const std::string &dirPath)
         return false;
 #endif // PGE_USE_ARCHIVES
 
+#ifdef __HAIKU__
+    return ::create_directory(dirPath.c_str(), S_IRWXU | S_IRWXG) == B_OK;
+#else
     return ::mkdir(dirPath.c_str(), S_IRWXU | S_IRWXG) == 0;
+#endif
 }
 
 bool DirMan::rmAbsDir(const std::string &dirPath)
@@ -366,16 +374,30 @@ bool DirMan::mkAbsPath(const std::string &dirPath)
         {
             *p = 0;
 
+#ifdef __HAIKU__
+            status_t err = ::create_directory(tmp, S_IRWXU | S_IRWXG);
+            if(err != B_OK)
+            {
+                *p = '/';
+                return false;
+            }
+#else // Generic UNIX
             int err = ::mkdir(tmp, S_IRWXU | S_IRWXG);
             if((err != 0) && (errno != EEXIST))
             {
                 *p = '/';
                 return false;
             }
+#endif
             *p = '/';
         }
     }
+
+#ifdef __HAIKU__
+    return ::create_directory(tmp, S_IRWXU | S_IRWXG) == B_OK;
+#else
     return ::mkdir(tmp, S_IRWXU | S_IRWXG) == 0;
+#endif
 }
 
 bool DirMan::rmAbsPath(const std::string &dirPath)
