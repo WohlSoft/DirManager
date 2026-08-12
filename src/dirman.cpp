@@ -22,6 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <locale>
+
 #include "../include/DirManager/dirman.h"
 #include "dirman_private.h"
 
@@ -43,7 +45,6 @@ bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::
 }
 
 #else
-#    include <locale>
 
 bool DirMan::matchSuffixFilters(const std::string &name, const std::vector<std::string> &suffixFilters)
 {
