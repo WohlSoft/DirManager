@@ -142,15 +142,14 @@ bool DirMan::rmpath(const std::string &dirPath)
     return rmAbsPath(d->m_dirPath + "/" + dirPath);
 }
 
-#ifndef PGE_FILES_PRESENT
 bool DirMan::beginWalking(const std::vector<std::string> &suffix_filters)
 {
     std::locale loc;
-    #ifdef _WIN32
+#ifdef _WIN32
     std::wstring             &m_dirPath    = d->m_dirPathW;
-    #else
+#else
     std::string              &m_dirPath    = d->m_dirPath;
-    #endif
+#endif
     DirMan_private::DirWalkerState &m_walkerState   = d->m_walkerState;
 
     // Clear previous state
@@ -160,6 +159,7 @@ bool DirMan::beginWalking(const std::vector<std::string> &suffix_filters)
     // Initialize suffix filters
     m_walkerState.suffix_filters.clear();
     m_walkerState.suffix_filters.reserve(suffix_filters.size());
+
     for(const std::string &filter : suffix_filters)
     {
         std::string f;
@@ -178,4 +178,3 @@ bool DirMan::fetchListFromWalker(std::string &curPath, std::vector<std::string> 
 {
     return d->fetchListFromWalker(curPath, list);
 }
-#endif // #ifndef PGE_FILES_PRESENT

@@ -151,7 +151,6 @@ public:
      */
     static bool rmAbsPath(const std::string &dirPath);
 
-#ifndef PGE_FILES_PRESENT
     /**
      * @brief Starts directory walking
      * @param suffix_filters list of suffix (filename ends) filters (if not defined, look for all files)
@@ -166,7 +165,6 @@ public:
      * @return false when directory walking has been completed
      */
     bool        fetchListFromWalker(std::string &curPath, std::vector<std::string> &list);
-#endif // #ifndef PGE_FILES_PRESENT
 };
 
 #endif // DIRMAN_H
